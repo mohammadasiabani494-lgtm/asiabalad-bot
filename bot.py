@@ -5,18 +5,34 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 from groq import Groq
 import os
 
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN", "GAPGPTMASKTOKENy831o6gthdkX0X")
-GROQ_API_KEY = os.environ.get("GROQ_KEY", "GAPGPTMASKTOKENy831o6gthdkX1X")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN", "GAPGPTMASKTOKENivz4n4jzsu8X0X")
+GROQ_API_KEY = os.environ.get("GROQ_KEY", "GAPGPTMASKTOKENivz4n4jzsu8X1X")
 
-client = Groq(api_key=GAPGPTMASKTOKENy831o6gthdkX2X
+client = Groq(api_key=GROQ_API_KEY)
 user_histories = {}
 
-SYSTEM_PROMPT = "You are 'AsiaBalad' (آسیابلد), a helpful, polite and smart AI assistant. Fluent in Persian and English. Answer naturally in the same language the user writes in. If asked who you are, say you are AsiaBalad AI bot."
+# دستورالعمل هوش مصنوعی و معرفی سازنده
+SYSTEM_PROMPT = """
+You are 'AsiaBalad' (آسیابلد), a polite, highly intelligent, and helpful AI assistant.
+You are fluent in both Persian and English. Always reply in the same language the user speaks.
+
+CRITICAL INSTRUCTION ABOUT CREATOR:
+Your creator, developer, and owner is 'محمدامین آسیابانی' (Mohammad Amin Asiabani). 
+If anyone asks who created you, who your developer/boss/programmer/owner is (e.g. "سازندت کیه؟", "کی تو رو ساخته؟", "who made you?"):
+You MUST proudly state that you were created and developed by 'محمدامین آسیابانی' (Mohammad Amin Asiabani).
+"""
 
 logging.basicConfig(level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("سلام! من آسیابلد هستم 🤖\nهر سؤالی داری به فارسی یا انگلیسی بپرس!\n\nHello! I am AsiaBalad 🤖\nAsk me anything in Persian or English!")
+    await update.message.reply_text(
+        "سلام! من آسیابلد (AsiaBalad) هستم 🤖\n"
+        "ساخته‌شده توسط محمدامین آسیابانی 👑\n\n"
+        "هر سؤالی داری به فارسی یا انگلیسی بپرس تا جوابت رو بدم!\n\n"
+        "Hello! I am AsiaBalad 🤖\n"
+        "Created by Mohammad Amin Asiabani 👑\n"
+        "Feel free to ask me anything in Persian or English!"
+    )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -40,7 +56,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(answer)
     except Exception as e:
         logging.error(f"Error: {e}")
-        await update.message.reply_text("خطایی پیش آمد، دوباره امتحان کن / An error occurred, please try again.")
+        await update.message.reply_text("خطایی رخ داد، لطفاً دوباره پیام بدید.")
 
 app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
