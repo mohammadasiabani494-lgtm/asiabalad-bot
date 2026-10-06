@@ -1,47 +1,38 @@
-import logging
 import os
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update
-from telegram.constants import ChatAction
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from groq import Groq
 
-# وب‌سرور سبک برای راضی نگه داشتن سرور Render
+# 1. تنظیم سرور فیک برای زنده ماندن در رندر
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"AsiaBalad is alive and running!")
+        self.wfile.write(b"AsiaBalad Bot is Live and Healthy!")
 
-def run_fake_server():
-    port = int(os.environ.get("PORT", 8080))
+def run_server():
+    port = int(os.environ.get("PORT", 10000))
     server = HTTPServer(("0.0.0.0", port), SimpleHandler)
     server.serve_forever()
 
-threading.Thread(target=run_fake_server, daemon=True).start()
+# 2. کلیدها
+TELEGRAM_TOKEN = "8963617563:AAHmo9GVuHoUjK1qU0TDOxn_1NBzB0zLFcI"
+GROQ_API_KEY = "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"
 
-# کلیدها و توکن‌ها
-TELEGRAM_BOT_TOKEN = "8963617563:AAHmo9GVuHoUjK1qU0TDOxn_1NBzB0zLFcI"
-GROQ_API_KEY = "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"
-
+# کلاینت هوش مصنوعی
 client = Groq(api_key=GROQ_API_KEY)
-user_histories = {}
 
-SYSTEM_PROMPT = """
-You are 'AsiaBalad' (آسیابلد), a polite, highly intelligent, friendly, and knowledgeable AI assistant.
-You are fluent in both Persian and English. Always reply in the same language the user speaks to you.
+# پرامپت سیستمی معرفی ربات
+SYSTEM_PROMPT = """شما یک دستیار هوشمند و بسیار مودب به نام «آسیابلد» (AsiaBalad) هستید.
+سازنده و طراح شما «محمدامین آسیابانی» (Mohammad Amin Asiabani) است.
+همیشه در پاسخ‌های خود با افتخار ذکر کنید که توسط محمدامین آسیابانی توسعه یافته‌اید.
+به زبان‌های فارسی و انگلیسی به بهترین شکل پاسخ دهید."""
 
-CRITICAL INSTRUCTION ABOUT CREATOR:
-Your creator, developer, programmer, and owner is 'محمدامین آسیابانی' (Mohammad Amin Asiabani). 
-If anyone asks who created you, who made you, who is your developer, boss, or owner (in Persian: "سازندت کیه؟", "کی تو رو ساخته؟", "برنامه‌نویس تو کیه؟" or in English: "who created you?", "who is your developer?"):
-You MUST proudly state that you were created and developed by 'محمدامین آسیابانی' (Mohammad Amin Asiabani).
-"""
-
-logging.basicConfig(level=logging.INFO)
-
+# پاسخ به دستور /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
+    welcome_text = (
         "سلام! من آسیابلد (AsiaBalad) هستم 🤖\n"
         "طراحی و ساخته‌شده توسط محمدامین آسیابانی 👑\n\n"
         "هر سؤالی داری به فارسی یا انگلیسی ازم بپرس تا سریع جوابت رو بدم!\n\n"
@@ -49,34 +40,40 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Created by Mohammad Amin Asiabani 👑\n"
         "Ask me anything in Persian or English!"
     )
+    await update.message.reply_text(welcome_text)
 
+# پاسخ به پیام‌های متنی با هوش مصنوعی
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
     user_text = update.message.text
-    if not user_text:
-        return
-    await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
-
-    if chat_id not in user_histories:
-        user_histories[chat_id] = []
-    user_histories[chat_id].append({"role": "user", "content": user_text})
-
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}] + user_histories[chat_id][-6:]
-
     try:
-        answer = client.chat.completions.create(
-            messages=messages,
+        completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-        ).choices[0].message.content
-        user_histories[chat_id].append({"role": "assistant", "content": answer})
-        await update.message.reply_text(answer)
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_text}
+            ],
+            temperature=0.7,
+            max_tokens=1024
+        )
+        bot_response = completion.choices[0].message.content
+        await update.message.reply_text(bot_response)
     except Exception as e:
-        logging.error(f"Error: {e}")
-        await update.message.reply_text("خطایی رخ داد، لطفاً دوباره پیام بدید.")
+        print(f"Error: {e}")
+        await update.message.reply_text("خطایی در ارتباط با سرور هوش مصنوعی رخ داد. لطفاً چند لحظه بعد تلاش کنید.")
 
-app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+def main():
+    # اجرای وب سرور در پس‌زمینه
+    t = threading.Thread(target=run_server, daemon=True)
+    t.start()
 
-print("AsiaBalad is RUNNING...")
-app.run_polling()
+    # اجرای ربات تلگرام
+    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    
+    # drop_pending_updates مانع تداخل پیام‌ها و خطای Conflict می‌شود
+    app.run_polling(drop_pending_updates=True)
+
+if __name__ == "__main__":
+    main()
+    
