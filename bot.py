@@ -19,7 +19,7 @@ def run_server():
 
 # 2. کلیدها
 TELEGRAM_TOKEN = "8963617563:AAHmo9GVuHoUjK1qU0TDOxn_1NBzB0zLFcI"
-GROQ_API_KEY ="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"
+GROQ_API_KEY = "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"
 
 # کلاینت هوش مصنوعی
 client = Groq(api_key=GROQ_API_KEY)
