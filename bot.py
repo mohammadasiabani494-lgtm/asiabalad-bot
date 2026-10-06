@@ -23,7 +23,7 @@ threading.Thread(target=run_fake_server, daemon=True).start()
 
 # کلیدها و توکن‌ها
 TELEGRAM_BOT_TOKEN = "8963617563:AAHmo9GVuHoUjK1qU0TDOxn_1NBzB0zLFcI"
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "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"
 
 client = Groq(api_key=GROQ_API_KEY)
 user_histories = {}
