@@ -13,7 +13,7 @@ TELEGRAM_BOT_TOKEN = (
 
 GROQ_API_KEY = (
     os.environ.get("GROQ_API_KEY")
-    or "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"
+    or "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"
 ).strip()
 
 # وب‌سرور برای زنده نگه‌داشتن سرویس روی Render
