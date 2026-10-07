@@ -12,7 +12,7 @@ from telegram.ext import (
     filters,
 )
 
-# ----------------- سرور داخلی برای زنده ماندن در رندر -----------------
+# ----------------- سرور داخلی جهت پایداری روی Render -----------------
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -22,40 +22,39 @@ class SimpleHandler(BaseHTTPRequestHandler):
 
     def do_HEAD(self):
         self.send_response(200)
-        self.end_headers()
+        self.send_header()
 
 def run_fake_server():
     port = int(os.environ.get("PORT", 8080))
     server = HTTPServer(("0.0.0.0", port), SimpleHandler)
     server.serve_forever()
 
-# ----------------- توکن تلگرام و کلید Groq -----------------
+# ----------------- کلیدها و توکن‌ها -----------------
 TELEGRAM_BOT_TOKEN = "8963617563:AAHmo9GVuHoUjK1qU0TDOxn_1NBzB0zLFcI"
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
+GROQ_API_KEY = os.environ.get("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")
+groq_client = Groq(api_key=("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")
 
-groq_client = Groq(api_key=("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")
-
-# پرامپت هویتی ماهان AI (بدون تکرار بی‌مورد نام سازنده)
+# پرامپت هویتی ماهان AI (عدم تکرار بی‌مورد نام سازنده)
 SYSTEM_PROMPT = (
-    "نام تو «ماهان» (Mahan AI) است؛ یک دستیار هوشمند، بسیار مودب، کاربلد و مسلط به زبان‌های فارسی و انگلیسی. "
-    "سازنده و مهندس توسعه‌دهنده تو «محمدامین آسیابانی» است. "
-    "قانون مهم: در مکالمات و پاسخ‌های روزمره به هیچ وجه نام سازنده را مدام تکرار نکن. "
-    "تنها در صورتی که کاربر صریحاً پرسید سازنده یا برنامه‌نویس تو کیست، با احترام بگو که ساخته محمدامین آسیابانی هستی. "
-    "در غیر این صورت، مستقیماً و روان جواب سوال را بده."
+    "نام تو «ماهان» (Mahan AI) است؛ یک دستیار هوشمند، مودب و مسلط به زبان‌های فارسی و انگلیسی. "
+    "سازنده و توسعه‌دهنده تو «محمدامین آسیابانی» است. "
+    "قانون مهم: در مکالمات و پاسخ‌های روزمره اصلاً نام سازنده را مدام تکرار نکن. "
+    "تنها در صورتی که کاربر صریحاً پرسید سازنده، مالک یا برنامه‌نویس تو کیست، با احترام بگو که ساخته محمدامین آسیابانی هستی. "
+    "در غیر این صورت، مستقیماً، خلاصه و روان به پرسش کاربر پاسخ بده."
 )
 
-# ----------------- توابع و هندلرهای ربات -----------------
+# ----------------- هندلرهای تلگرام -----------------
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = (
-        "سلام! من ماهان (Mahan AI) هستم؛ دستیار هوشمند تو.\n"
-        "هر سوالی داری بپرس یا برای طراحی تصویر بنویس:\n"
+        "سلام! من ماهان (Mahan AI) هستم؛ دستیار هوشمند شما.\n"
+        "هر سوالی دارید بپرسید یا برای طراحی تصویر بنویسید:\n"
         "`/image متن تصویر مورد نظر`"
     )
     await update.message.reply_text(welcome_text)
 
 async def generate_image(update: Update, prompt: str):
-    await update.message.reply_text("در حال طراحی و ایجاد تصویر، لطفاً چند لحظه صبر کن...")
+    await update.message.reply_text("در حال طراحی و ایجاد تصویر، لطفاً چند لحظه صبر کنید...")
     encoded_prompt = urllib.parse.quote(prompt)
     image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
     
@@ -66,7 +65,7 @@ async def generate_image(update: Update, prompt: str):
 
 async def image_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
-        await update.message.reply_text("لطفاً بعد از دستور /image توضیح عکس را بنویس.\nمثال: `/image یک ماشین اسپرت در شب`")
+        await update.message.reply_text("لطفاً بعد از دستور /image توضیح عکس را بنویسید.\nمثال: `/image یک ماشین اسپرت در شب`")
         return
     prompt = " ".join(context.args)
     await generate_image(update, prompt)
@@ -76,7 +75,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not user_text:
         return
 
-    # تشخیص هوشمند درخواست عکس
+    # تشخیص درخواست تصویر
     image_keywords = ["عکس", "تصویر", "بکش", "طراحی کن", "نقاشی"]
     if any(keyword in user_text for keyword in image_keywords) and len(user_text.split()) > 1:
         clean_prompt = user_text
@@ -87,7 +86,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await generate_image(update, clean_prompt)
             return
 
-    # ارسال پیام متنی به مدل Groq
+    # پاسخ متنی با مدل Groq
     try:
         completion = groq_client.chat.completions.create(
             model="openai/gpt-oss-120b",
@@ -102,7 +101,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"خطا در پاسخگویی: {e}")
 
-# ----------------- اجرای ربات -----------------
+# ----------------- اجرای اصلی -----------------
 def main():
     threading.Thread(target=run_fake_server, daemon=True).start()
 
@@ -116,3 +115,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+                         
