@@ -5,7 +5,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from groq import Groq
 
-# سرور وب برای زنده ماندن در رندر
+# سرور وب برای روشن ماندن در رندر
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -17,9 +17,8 @@ def run_server():
     server = HTTPServer(("0.0.0.0", port), SimpleHandler)
     server.serve_forever()
 
-# دریافت کلیدها
 TELEGRAM_TOKEN = "8963617563:AAHmo9GVuHoUjK1qU0TDOxn_1NBzB0zLFcI"
-GROQ_KEY = os.environ.get("GROQ_API_KEY", "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")
+GROQ_KEY = os.environ.get("GROQ_API_KEY", "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")
 
 client = Groq(api_key=GROQ_KEY)
 
@@ -32,7 +31,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": update.message.text}
@@ -52,3 +51,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+                 
