@@ -19,9 +19,8 @@ def run_server():
 
 TELEGRAM_TOKEN = "8963617563:AAHmo9GVuHoUjK1qU0TDOxn_1NBzB0zLFcI"
 
-# ساخت کلاینت Groq
 client = Groq(
-    api_key=os.environ.get("GROQ_API_KEY", "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")
+    api_key=os.environ.get("GROQ_API_KEY", "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")
 )
 
 SYSTEM_PROMPT = """شما دستیار هوشمند آسیابلد (AsiaBalad) هستید.
@@ -33,7 +32,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         completion = client.chat.completions.create(
-            model="gemma2-9b-it",
+            model="openai/gpt-oss-120b",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": update.message.text}
