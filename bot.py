@@ -12,13 +12,13 @@ from telegram.ext import (
     filters,
 )
 
-# ----------------- سرور وب داخلی برای زنده ماندن در رندر -----------------
+# ----------------- سرور وب برای پایداری در رندر -----------------
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/plain; charset=utf-8')
         self.end_headers()
-        self.wfile.write(b"Mahan AI Bot is alive and running!")
+        self.wfile.write(b"Mahan AI is running smoothly!")
 
     def do_HEAD(self):
         self.send_response(200)
@@ -29,16 +29,22 @@ def run_fake_server():
     server = HTTPServer(("0.0.0.0", port), SimpleHandler)
     server.serve_forever()
 
-# ----------------- توکن‌ها و کلیدها -----------------
-# دریافت توکن تلگرام از تنظیمات رندر یا مقدار پیش‌فرض مستقیم
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8963617563:AAHmo9GVuHoUjK1qU0TD0xn_1NBzB0zLFcI")
+# ----------------- تنظیمات توکن‌ها -----------------
+# آخرین توکن معتبر از BotFather
+TELEGRAM_BOT_TOKEN = os.environ.get(
+    "TELEGRAM_BOT_TOKEN", 
+    "8963617563:AAHDzjD9k3JXDMF8VDydVeINqxHt7YY9t2g"
+)
 
-# دریافت کلید Groq از تنظیمات رندر یا مقدار پیش‌فرض مستقیم
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
+# کلید سرویس Groq
+GROQ_API_KEY = os.environ.get(
+    "GROQ_API_KEY", 
+    "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"
+)
 
 groq_client = Groq(api_key=GROQ_API_KEY)
 
-# پرامپت هویتی ماهان AI بدون تکرار بی‌مورد نام
+# دستورالعمل شخصیتی ماهان AI
 SYSTEM_PROMPT = (
     "نام تو «ماهان» (Mahan AI) است؛ یک دستیار هوشمند، بسیار مودب، کاربلد و مسلط به زبان‌های فارسی و انگلیسی. "
     "سازنده و توسعه‌دهنده تو «محمدامین آسیابانی» است. "
@@ -50,14 +56,15 @@ SYSTEM_PROMPT = (
 # ----------------- هندلرهای تلگرام -----------------
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = (
-        "سلام! من ماهان (Mahan AI) هستم؛ دستیار هوشمند تو.\n"
-        "هر سوالی داری بپرس یا برای طراحی تصویر بنویس:\n"
-        "`/image متن تصویر مورد نظر`"
+        "سلام! من ماهان (Mahan AI) هستم؛ دستیار هوشمند شما.\n\n"
+        "🔹 هر سوال یا متنی داری بفرست تا جوابت رو بدم.\n"
+        "🎨 برای کشیدن نقاشی یا عکس هم می‌تونی از دستور زیر استفاده کنی:\n"
+        "`/image متن عکس دلخواه`"
     )
     await update.message.reply_text(welcome_text)
 
 async def generate_image(update: Update, prompt: str):
-    await update.message.reply_text("در حال طراحی و ایجاد تصویر، لطفاً چند لحظه صبر کن...")
+    await update.message.reply_text("در حال طراحی تصویر، لطفاً چند لحظه صبر کنید...")
     encoded_prompt = urllib.parse.quote(prompt)
     image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
     
@@ -68,7 +75,7 @@ async def generate_image(update: Update, prompt: str):
 
 async def image_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
-        await update.message.reply_text("لطفاً بعد از دستور /image توضیح عکس را بنویس.\nمثال: `/image یک ماشین اسپرت در شب`")
+        await update.message.reply_text("لطفاً بعد از /image موضوع تصویر را بنویسید.\nمثال: `/image یک ماشین اسپرت مدرن`")
         return
     prompt = " ".join(context.args)
     await generate_image(update, prompt)
@@ -78,7 +85,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not user_text:
         return
 
-    # تشخیص درخواست طراحی عکس
+    # بررسی هوشمند درخواست تولید عکس
     image_keywords = ["عکس", "تصویر", "بکش", "طراحی کن", "نقاشی"]
     if any(keyword in user_text for keyword in image_keywords) and len(user_text.split()) > 1:
         clean_prompt = user_text
@@ -89,7 +96,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await generate_image(update, clean_prompt)
             return
 
-    # پاسخ متنی با مدل Groq
+    # پردازش متنی با مدل Groq
     try:
         completion = groq_client.chat.completions.create(
             model="openai/gpt-oss-120b",
@@ -102,12 +109,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = completion.choices[0].message.content
         await update.message.reply_text(reply)
     except Exception as e:
-        await update.message.reply_text(f"خطا در پاسخگویی: {e}")
+        await update.message.reply_text(f"خطا در دریافت پاسخ: {e}")
 
-# ----------------- اجرای ربات -----------------
+# ----------------- تابع اصلی اجرای ربات -----------------
 def main():
+    # شروع سرور وب پس‌زمینه
     threading.Thread(target=run_fake_server, daemon=True).start()
 
+    # اتصال به تلگرام
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("image", image_command))
