@@ -39,6 +39,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_text = update.message.text
     try:
+        # اینجا متغیر گروک رو صدا می‌زنیم
         client = Groq(api_key=GROQ_API_KEY)
         completion = client.chat.completions.create(
             model="openai/gpt-oss-120b",
@@ -46,9 +47,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 {
                     "role": "system",
                     "content": (
-                        "نام تو 'ماهان' است (دقیقاً با الف: ماهان). هرگز نام خودت را 'مهان' ننویس. "
+                        "نام تو دقیقاً 'ماهان' است (با الف: ماهان). هرگز نام خودت را 'مهان' ننویس. "
                         "تو یک دستیار هوش مصنوعی هوشمند و صمیمی به زبان فارسی هستی. "
-                        "اگر درباره سازنده‌ات پرسیدند، بگو توسط تیم ماهان / محمدامین توسعه داده شده‌ای و هیچ نامی از OpenAI یا شرکت‌های دیگر نبر. "
+                        "تنها سازنده، برنامه‌نویس و توسعه‌دهنده تو 'محمدامین آسیابانی' است. "
+                        "اگر درباره سازنده‌ات پرسیدند، صریح و مشخص بگو که توسط 'محمدامین آسیابانی' ساخته شده‌ای. "
+                        "به هیچ وجه نامی از 'تیم ماهان'، OpenAI، متا یا شرکت‌های دیگر نبر. "
                         "همیشه مؤدبانه، طبیعی و روان به زبان فارسی پاسخ بده."
                     )
                 },
@@ -60,8 +63,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         reply = completion.choices[0].message.content
 
-        # فیلتر خودکار برای اصلاح املای نام ماهان
+        # فیلترهای جایگزینی قطعی
         reply = reply.replace("مهان", "ماهان")
+        reply = reply.replace("تیم ماهان و محمدامین", "محمدامین آسیابانی")
+        reply = reply.replace("تیم ماهان", "محمدامین آسیابانی")
 
         await update.message.reply_text(reply)
     except Exception as e:
@@ -83,3 +88,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
