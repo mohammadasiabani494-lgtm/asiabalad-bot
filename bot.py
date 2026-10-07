@@ -45,7 +45,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             messages=[
                 {
                     "role": "system",
-                    "content": "You are Mahan AI (ماهان), a friendly and intelligent Persian AI assistant. Always reply politely, naturally and fluently in Persian."
+                    "content": "You are Mahan (ماهان), a friendly and intelligent Persian AI assistant. Always reply politely, naturally and fluently in Persian. Your name is strictly 'ماهان' (Mahan) with an 'ا', never write it as 'مهان'."
                 },
                 {
                     "role": "user",
