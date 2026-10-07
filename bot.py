@@ -5,18 +5,18 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from groq import Groq
 
-# مقادیر توکن و کلید API (با حذف فاصله‌ها و اینترهای احتمالی)
+# توکن‌ها (با حذف فاصله و اینتر اضافه)
 TELEGRAM_BOT_TOKEN = (
-    os.environ.get("TELEGRAM_BOT_TOKEN") 
+    os.environ.get("TELEGRAM_BOT_TOKEN")
     or "8794625931:AAHyIYUIHhEHHIbqZkwUuSsL0k6YJGyAp4"
 ).strip()
 
 GROQ_API_KEY = (
-    os.environ.get("GROQ_API_KEY") 
+    os.environ.get("GROQ_API_KEY")
     or "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"
 ).strip()
 
-# وب‌سرور کوچک برای زنده نگه‌داشتن وب‌سرویس روی Render
+# وب‌سرور برای زنده نگه‌داشتن سرویس روی Render
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -37,7 +37,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(welcome_text)
 
-# پردازش و پاسخ به پیام‌ها با مدل Groq
+# پاسخگویی هوشمند با مدل Groq
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     try:
@@ -62,11 +62,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("متأسفانه مشکلی در ارتباط با سرور پیش آمد. لطفاً دوباره تلاش کنید.")
 
 def main():
-    # شروع سرور وب در یک ترد جداگانه
+    # سرور وب در ترد جداگانه
     web_thread = threading.Thread(target=run_health_server, daemon=True)
     web_thread.start()
 
-    # راه‌اندازی ربات تلگرام
+    # راه‌اندازی ربات
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
@@ -76,4 +76,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
+                         
