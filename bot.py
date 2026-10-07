@@ -5,14 +5,13 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from groq import Groq
 
-# توکن ربات تلگرام (از متغیر محیطی رندر)
+# توکن جدید تلگرام
 TELEGRAM_BOT_TOKEN = "8794625931:AAE5qSsEuJqiZBj5rfVwrCqhqhxEy8t2Z1Zg"
-").strip()
 
-# کلید هوش مصنوعی Groq شما
+# کلید هوش مصنوعی گروک
 GROQ_API_KEY = "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"
 
-# سرور داخلی برای آنلاین نگه داشتن سرویس در رندر
+# سرور داخلی برای فعال نگه داشتن سرویس در Render
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -28,16 +27,16 @@ def run_health_server():
     server = HTTPServer(("0.0.0.0", port), HealthHandler)
     server.serve_forever()
 
-# دستور استارت ربات
+# پیام شروع ربات
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = (
         "سلام! 👋 من ماهان هستم، دستیار هوشمند شما.\n\n"
-        "هر سوال یا کمکی خواستی، برام پیام بفرست تا جوابت رو بدم!"
+        "هر سوال یا درخواستی داری برام بفرست تا کمکت کنم!"
     )
     if update.message:
         await update.message.reply_text(welcome_text)
 
-# پاسخگویی هوشمند به پیام‌ها
+# پردازش و پاسخ هوشمند به پیام‌ها
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
@@ -62,10 +61,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(reply)
     except Exception as e:
         print(f"Groq API Error: {e}")
-        await update.message.reply_text("متأسفانه مشکلی در ارتباط با سرور پیش آمد. لطفاً دوباره تلاش کنید.")
+        await update.message.reply_text("متأسفانه در حال حاضر خطایی رخ داده است. لطفاً کمی بعد دوباره پیام دهید.")
 
 def main():
-    # روشن کردن سرور وب در ترد جداگانه
+    # فعال‌سازی سرور در پس‌زمینه برای Render
     web_thread = threading.Thread(target=run_health_server, daemon=True)
     web_thread.start()
 
