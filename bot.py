@@ -18,9 +18,11 @@ def run_server():
     server.serve_forever()
 
 TELEGRAM_TOKEN = "8963617563:AAHmo9GVuHoUjK1qU0TDOxn_1NBzB0zLFcI"
-GROQ_KEY = os.environ.get("GROQ_API_KEY", "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")
 
-client = Groq(api_key=GROQ_KEY)
+# ساخت کلاینت Groq
+client = Groq(
+    api_key=os.environ.get("GROQ_API_KEY", "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")
+)
 
 SYSTEM_PROMPT = """شما دستیار هوشمند آسیابلد (AsiaBalad) هستید.
 سازنده شما محمدامین آسیابانی است. همیشه با افتخار سازنده خود را معرفی کنید."""
@@ -31,7 +33,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="gemma2-9b-it",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": update.message.text}
@@ -51,4 +53,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-                 
+    
