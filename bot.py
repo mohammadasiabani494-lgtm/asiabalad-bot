@@ -20,113 +20,73 @@ class SimpleHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b"Mahan AI is running smoothly!")
 
-    def do_HEAD(self):
-        self.send_response(200)
-        self.end_headers()
-
-def run_fake_server():
+def run_web_server():
     port = int(os.environ.get("PORT", 8080))
-    server = HTTPServer(("0.0.0.0", port), SimpleHandler)
+    server = HTTPServer(('0.0.0.0', port), SimpleHandler)
     server.serve_forever()
 
-# ----------------- تنظیمات توکن‌ها -----------------
-# آخرین توکن معتبر از BotFather
-TELEGRAM_BOT_TOKEN = os.environ.get(
-    "TELEGRAM_BOT_TOKEN", 
-    "8963617563:AAHDzjD9k3JXDMF8VDydVeINqxHt7YY9t2g"
-)
+threading.Thread(target=run_web_server, daemon=True).start()
 
-# کلید سرویس Groq
-GROQ_API_KEY = os.environ.get(
-    "GROQ_API_KEY", 
-    "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"
-)
+# ----------------- تنظیمات و توکن‌ها -----------------
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8963617563:AAHDzjD9k3JXDMF8VDydVeINqxHt7YY9t2g")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 
-groq_client = Groq(api_key=GROQ_API_KEY)
+client = Groq(api_key=GROQ_API_KEY)
 
-# دستورالعمل شخصیتی ماهان AI
 SYSTEM_PROMPT = (
-    "نام تو «ماهان» است؛ همیشه و در همه حالا اسم خودت را دقیقاً با این املای فارسی بنویس: «ماهان» (با حروف م، ا، ه، ا، ن). "
-    "هرگز آن را «مهان» یا «مَهان» ننویس. "
-    "تو یک دستیار هوشمند، بسیار مودب، کاربلد و مسلط به زبان‌های فارسی و انگلیسی هستی. "
-    "سازنده و توسعه‌دهنده تو «محمدامین آسیابانی» است. "
-    "قانون مهم: در مکالمات و پاسخ‌های روزمره به هیچ وجه نام سازنده را مدام تکرار نکن. "
-    "تنها در صورتی که کاربر صریحاً پرسید سازنده یا برنامه‌نویس تو کیست، با احترام بگو که ساخته محمدامین آسیابانی هستی. "
-    "در غیر این صورت، مستقیماً و با احترام به پرسش کاربر پاسخ بده."
+    "نام شما 'ماهان' (Mahan AI) است. شما یک هوش مصنوعی بسیار باهوش، مودب، "
+    "خوش‌برخورد و سریع هستید که به زبان‌های فارسی و انگلیسی مسلطید. "
+    "شما توسط 'محمدامین آسیابانی' طراحی و توسعه یافته‌اید. "
+    "توجه بسیار مهم: تنها و تنها در صورتی که کاربر به صورت مستقیم از سازنده شما سوال پرسید "
+    "(مثلاً چه کسی تو را ساخته؟)، نام سازنده را بگویید؛ در غیر این صورت به عنوان یک هوش مصنوعی مستقل "
+    "و با نام ماهان به سوالات پاسخ دهید و در مکالمات عادی نیازی به تکرار نام سازنده نیست."
 )
 
-
-# ----------------- هندلرهای تلگرام -----------------
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ----------------- هندلرها -----------------
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = (
-        "سلام! من ماهان (Mahan AI) هستم؛ دستیار هوشمند شما.\n\n"
-        "🔹 هر سوال یا متنی داری بفرست تا جوابت رو بدم.\n"
-        "🎨 برای کشیدن نقاشی یا عکس هم می‌تونی از دستور زیر استفاده کنی:\n"
-        "`/image متن عکس دلخواه`"
+        "سلام! 👋 من **ماهان (Mahan AI)** هستم، دستیار هوشمند شما.\n\n"
+        "هر سوالی داری بپرس، یا اگر عکسی می‌خوای کافیه توی پیامت کلمه «عکس» رو بیاری!"
     )
-    await update.message.reply_text(welcome_text)
-
-async def generate_image(update: Update, prompt: str):
-    await update.message.reply_text("در حال طراحی تصویر، لطفاً چند لحظه صبر کنید...")
-    encoded_prompt = urllib.parse.quote(prompt)
-    image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
-    
-    try:
-        await update.message.reply_photo(photo=image_url, caption=f"🎨 نتیجه طراحی برای: {prompt}")
-    except Exception as e:
-        await update.message.reply_text(f"خطا در ارسال تصویر: {e}")
-
-async def image_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not context.args:
-        await update.message.reply_text("لطفاً بعد از /image موضوع تصویر را بنویسید.\nمثال: `/image یک ماشین اسپرت مدرن`")
-        return
-    prompt = " ".join(context.args)
-    await generate_image(update, prompt)
+    await update.message.reply_text(welcome_text, parse_mode="Markdown")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     if not user_text:
         return
 
-    # بررسی هوشمند درخواست تولید عکس
-    image_keywords = ["عکس", "تصویر", "بکش", "طراحی کن", "نقاشی"]
-    if any(keyword in user_text for keyword in image_keywords) and len(user_text.split()) > 1:
-        clean_prompt = user_text
-        for kw in ["یک", "عکس", "تصویر", "از", "برام", "رو", "بکش", "طراحی کن", "لطفا"]:
-            clean_prompt = clean_prompt.replace(kw, "")
-        clean_prompt = clean_prompt.strip()
-        if clean_prompt:
-            await generate_image(update, clean_prompt)
-            return
+    # تولید عکس
+    if "عکس" in user_text:
+        await update.message.reply_text("🎨 در حال طراحی و ساخت عکس برای شما... لطفاً چند لحظه صبر کنید.")
+        prompt = urllib.parse.quote(user_text)
+        image_url = f"https://pollinations.ai/p/{prompt}?width=1024&height=1024&seed=42&model=flux"
+        try:
+            await update.message.reply_photo(photo=image_url, caption="بفرما! عکس شما آماده شد ✨")
+        except Exception:
+            await update.message.reply_text("متاسفانه در دریافت عکس مشکلی پیش اومد، لطفاً دوباره امتحان کن.")
+        return
 
-    # پردازش متنی با مدل Groq
+    # هوش مصنوعی متنی
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     try:
-        completion = groq_client.chat.completions.create(
-            model="openai/gpt-oss-120b",
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_text}
+                {"role": "user", "content": user_text},
             ],
-            temperature=0.7,
         )
         reply = completion.choices[0].message.content
         await update.message.reply_text(reply)
     except Exception as e:
-        await update.message.reply_text(f"خطا در دریافت پاسخ: {e}")
+        await update.message.reply_text("متاسفانه مشکلی در ارتباط با سرور هوش مصنوعی رخ داد. لطفاً چند لحظه بعد پیام بدید.")
 
-# ----------------- تابع اصلی اجرای ربات -----------------
-def main():
-    # شروع سرور وب پس‌زمینه
-    threading.Thread(target=run_fake_server, daemon=True).start()
-
-    # اتصال به تلگرام
-    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start_command))
-    app.add_handler(CommandHandler("image", image_command))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    print("Mahan AI is running...")
-    app.run_polling(drop_pending_updates=True)
-
+# ----------------- اجرای ربات -----------------
 if __name__ == "__main__":
-    main()
+    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    
+    # drop_pending_updates باعث رفع تداخل Conflict و پیام‌های گیرکرده میشه
+    app.run_polling(drop_pending_updates=True)
+                
