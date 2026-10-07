@@ -5,21 +5,24 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from groq import Groq
 
-# خواندن متغیرها و حذف فاصله‌ها و اینترهای اضافه
-TELEGRAM_BOT_TOKEN = (os.environ.get("TELEGRAM_BOT_TOKEN") or "8794625931:AAHyIYUIHhEHHIbqZkwUuSsL0k6YJGyAp4
-").strip()
-GROQ_API_KEY = (os.environ.get("GROQ_API_KEY") or "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").strip()
+# مقادیر توکن و کلید API (با حذف فاصله‌ها و اینترهای احتمالی)
+TELEGRAM_BOT_TOKEN = (
+    os.environ.get("TELEGRAM_BOT_TOKEN") 
+    or "8794625931:AAHyIYUIHhEHHIbqZkwUuSsL0k6YJGyAp4"
+).strip()
 
-# راه‌اندازی کلاینت هوش مصنوعی
-client = Groq(api_key=GROQ_API_KEY)
+GROQ_API_KEY = (
+    os.environ.get("GROQ_API_KEY") 
+    or "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"
+).strip()
 
-# وب‌سرور برای زنده نگه داشتن سرویس روی Render
+# وب‌سرور کوچک برای زنده نگه‌داشتن وب‌سرویس روی Render
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
-        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-type", "text/plain; charset=utf-8")
         self.end_headers()
-        self.wfile.write(b"Mahan AI is running smoothly!")
+        self.wfile.write("Mahan AI is running smoothly!".encode("utf-8"))
 
 def run_health_server():
     port = int(os.environ.get("PORT", 8080))
@@ -28,22 +31,26 @@ def run_health_server():
 
 # دستور استارت
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    welcome_msg = (
+    welcome_text = (
         "سلام! 👋 من ماهان هستم، دستیار هوشمند شما.\n\n"
-        "هر سوالی داری بپرس تا جواب بدم."
+        "هر سوال یا کمکی خواستی، برام پیام بفرست تا جوابت رو بدم!"
     )
-    await update.message.reply_text(welcome_msg)
+    await update.message.reply_text(welcome_text)
 
-# پاسخگویی با هوش مصنوعی
+# پردازش و پاسخ به پیام‌ها با مدل Groq
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     try:
+        client = Groq(api_key=GROQ_API_KEY)
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {
                     "role": "system",
-                    "content": "You are Mahan AI (ماهان), a helpful, polite, and intelligent AI assistant. Always reply in Persian unless the user speaks another language."
+                    "content": (
+                        "You are Mahan AI (ماهان), an intelligent, polite, and friendly assistant. "
+                        "Always reply in fluent Persian unless asked otherwise."
+                    )
                 },
                 {"role": "user", "content": user_text}
             ],
@@ -51,21 +58,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = completion.choices[0].message.content
         await update.message.reply_text(reply)
     except Exception as e:
-        await update.message.reply_text("متاسفانه در پردازش پیام مشکلی پیش آمد. لطفا دوباره تلاش کنید.")
+        print(f"Groq API Error: {e}")
+        await update.message.reply_text("متأسفانه مشکلی در ارتباط با سرور پیش آمد. لطفاً دوباره تلاش کنید.")
 
 def main():
-    # اجرای وب‌سرور در پس‌زمینه
-    t = threading.Thread(target=run_health_server, daemon=True)
-    t.start()
+    # شروع سرور وب در یک ترد جداگانه
+    web_thread = threading.Thread(target=run_health_server, daemon=True)
+    web_thread.start()
 
-    # ساخت و اجرای ربات تلگرام
+    # راه‌اندازی ربات تلگرام
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    print("Mahan AI is starting...")
+    print("Mahan AI is online and listening...")
     app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
     main()
-        
+    
