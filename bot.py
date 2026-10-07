@@ -43,7 +43,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         client = Groq(api_key=GROQ_API_KEY)
         completion = client.chat.completions.create(
-               model="openai/gpt-oss-120b",
+        model="openai/gpt-oss-120b",
             ,
             messages=[
                 {
