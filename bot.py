@@ -45,7 +45,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             messages=[
                 {
                     "role": "system",
-                    "content": "You are Mahan (ماهان), a friendly and intelligent Persian AI assistant. Always reply politely, naturally and fluently in Persian. Your name is strictly 'ماهان' (Mahan) with an 'ا', never write it as 'مهان'."
+                    "content": (
+                        "نام تو 'ماهان' است (دقیقاً با الف: ماهان). هرگز نام خودت را 'مهان' ننویس. "
+                        "تو یک دستیار هوش مصنوعی هوشمند و صمیمی به زبان فارسی هستی. "
+                        "اگر درباره سازنده‌ات پرسیدند، بگو توسط تیم ماهان / محمدامین توسعه داده شده‌ای و هیچ نامی از OpenAI یا شرکت‌های دیگر نبر. "
+                        "همیشه مؤدبانه، طبیعی و روان به زبان فارسی پاسخ بده."
+                    )
                 },
                 {
                     "role": "user",
@@ -54,6 +59,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ]
         )
         reply = completion.choices[0].message.content
+
+        # فیلتر خودکار برای اصلاح املای نام ماهان
+        reply = reply.replace("مهان", "ماهان")
+
         await update.message.reply_text(reply)
     except Exception as e:
         print(f"Groq API Error: {e}")
