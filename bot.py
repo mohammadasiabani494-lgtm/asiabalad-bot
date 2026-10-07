@@ -6,9 +6,9 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 from groq import Groq
 
 # توکن ربات تلگرام
-TELEGRAM_BOT_TOKEN = "8794625931:AAE5qSsEuJqiZBj5rfVwrCqhqhxEy8t2Z1Zg"
+TELEGRAM_BOT_TOKEN = "8794625931:AAGBEpm0hqe0IFL9v_KBS-R3xS5yWjIgJwo"
 
-# کلید Groq
+# کلید هوش مصنوعی گروک
 GROQ_API_KEY = "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"
 
 # سرور داخلی برای زنده نگه داشتن سرویس در Render
@@ -27,10 +27,12 @@ def run_health_server():
     server = HTTPServer(("0.0.0.0", port), HealthHandler)
     server.serve_forever()
 
+# دستور استارت
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message:
         await update.message.reply_text("سلام! 👋 من ماهان هستم، دستیار هوشمند شما. هر سوالی داری بپرس!")
 
+# پاسخ هوشمند به پیام‌ها
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
